@@ -1,0 +1,161 @@
+<?xml version="1.0"?>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.thawtspot</groupId>
+		<artifactId>radiantprime</artifactId>
+		<version>0.1.0-SNAPSHOT</version>
+	</parent>
+
+	<groupId>com.thawtspot.rp.nodeapp</groupId>
+	<artifactId>rp-nodeapp</artifactId>
+	<name>rp-nodeapp</name>
+	<url>http://maven.apache.org</url>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<build>
+	<finalName>${project.artifactId}-${project.version}</finalName>
+	<resources>
+		<resource>
+			<directory>src/main/resources</directory>
+			<filtering>true</filtering>
+		</resource>
+	</resources>
+	<plugins>
+		<plugin>
+			<artifactId>maven-war-plugin</artifactId>
+			<version>2.4</version>
+			<configuration>
+				<warName>${project.artifactId}-${project.version}</warName>
+				<archive>
+					<manifest>
+						<mainClass>com.thawtspot.rp.nodeapp.startup.App</mainClass>
+					</manifest>
+				</archive>
+			</configuration>
+			<executions>
+				<execution>
+					<id>default-war</id>
+					<phase>package</phase>
+					<goals>
+						<goal>war</goal>
+					</goals>
+				</execution>
+			</executions>
+		</plugin>
+
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-dependency-plugin</artifactId>
+			<version>2.8</version>
+			<executions>
+				<execution>
+					<id>jetty-classpath</id>
+					<phase>prepare-package</phase>
+					<goals>
+						<goal>unpack-dependencies</goal>
+					</goals>
+					<configuration>
+						<includeGroupIds>org.eclipse.jetty,javax.servlet</includeGroupIds>
+						<!-- why exclude? No idea:<excludeArtifactIds>jsp-api,jstl</excludeArtifactIds> -->
+						<excludes>META-INF/ECLIPSEF.*</excludes>
+						<outputDirectory>
+							${project.build.directory}/${project.artifactId}-${project.version}
+						</outputDirectory>
+					</configuration>
+				</execution>
+			</executions>
+		</plugin>
+		<plugin>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-maven-plugin</artifactId>
+			<version>9.1.4.v20140401</version>
+		</plugin>
+
+		<plugin>
+			<artifactId>maven-antrun-plugin</artifactId>
+			<executions>
+				<execution>
+					<id>main-class-placement</id>
+					<phase>prepare-package</phase>
+					<configuration>
+						<tasks>
+							<!-- Copy startup classes to root of WAR -->
+							<copy
+								todir="${project.build.directory}/${project.artifactId}-${project.version}/com/thawtspot/rp/nodeapp/startup">
+								<fileset
+									dir="${project.build.directory}/classes/com/thawtspot/rp/nodeapp/startup">
+								</fileset>
+							</copy>
+						</tasks>
+					</configuration>
+					<goals>
+						<goal>run</goal>
+					</goals>
+				</execution>
+
+				<execution>
+					<id>web-inf-copy</id>
+					<phase>package</phase>
+					<configuration>
+						<tasks>
+							<!-- Copy WEB-INF into target directory to support running from Eclipse 
+								in Local setup -->
+							<copy todir="${project.build.directory}/classes/WEB-INF">
+								<fileset
+									dir="${project.build.directory}/${project.artifactId}-${project.version}/WEB-INF">
+									<include name="web.xml" />
+								</fileset>
+							</copy>
+						</tasks>
+					</configuration>
+					<goals>
+						<goal>run</goal>
+					</goals>
+				</execution>
+			</executions>
+		</plugin>
+
+	</plugins>
+</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.thawtspot</groupId>
+			<artifactId>rp-common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>3.8.1</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty.aggregate</groupId>
+			<artifactId>jetty-all</artifactId>
+			<version>9.2.0.v20140526</version>
+		</dependency>
+	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>oss-sonatype</id>
+			<name>oss-sonatype</name>
+			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
+</project>
